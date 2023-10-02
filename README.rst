@@ -24,13 +24,11 @@ the plugin group; otherwise, they will not be accessible to this plug-in and run
 Configuring the Plugin
 """""""""""""""""""""
 
-Parameter | Description
----------- | ----------
-Access Token Issuer | The issuer to use when issuing the response token
-Signature Verification Key | A configured signature verification key to be used when validating the received JWT (If JWKS Endpoint is not used)
-Audience | The allowed value in the `aud` claim of the received JWT
-Issuer | The allowed value in the `iss` claim of the received JWT
-JWKS Endpoint | The JWKS Endpoint if used for JWT validation
+`Access Token Issuer`: The issuer to use when issuing the response token
+`Signature Verification Key`: A configured signature verification key to be used when validating the received JWT (If JWKS Endpoint is not used)
+`Audience`: The allowed value in the `aud` claim of the received JWT
+`Issuer`: The allowed value in the `iss` claim of the received JWT
+`JWKS Endpoint`: The JWKS Endpoint if used for JWT validation
 
 1. Configure the Token Exchange Flow on a new `token` endpoint (ex. `/jwt-exchange`) and set it to use the Plugin.
 2. Configure a client with the `Client Credentials` and `Token Exchange` capabilities.
@@ -40,7 +38,7 @@ JWKS Endpoint | The JWKS Endpoint if used for JWT validation
 Example Request
 """""""""""""""""""""
 
-```http
+`
 curl -Ss -X POST \
 https://iggbom-curity.ngrok.io/jwt-exchange \
 -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -50,7 +48,7 @@ https://iggbom-curity.ngrok.io/jwt-exchange \
 --data-urlencode 'token=_0XBPWQQ_ac25d03b-f195-4710-8447-57fa4b9a217d' \
 --data-urlencode 'client_secret=Pa$$w0rd1!' \
 --data-urlencode 'subject_token=eyJhbGciOiJSUzI1NiJ9.eyJodHRw...leiEN5_Qz8c'
-```
+`
 
 More Information
 ~~~~~~~~~~~~~~~~
