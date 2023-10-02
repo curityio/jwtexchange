@@ -38,7 +38,7 @@ Configuring the Plugin
 Example Request
 """""""""""""""""""""
 
-`
+```
 curl -Ss -X POST \
 https://iggbom-curity.ngrok.io/jwt-exchange \
 -H 'Content-Type: application/x-www-form-urlencoded' \
@@ -48,7 +48,7 @@ https://iggbom-curity.ngrok.io/jwt-exchange \
 --data-urlencode 'token=_0XBPWQQ_ac25d03b-f195-4710-8447-57fa4b9a217d' \
 --data-urlencode 'client_secret=Pa$$w0rd1!' \
 --data-urlencode 'subject_token=eyJhbGciOiJSUzI1NiJ9.eyJodHRw...leiEN5_Qz8c'
-`
+```
 
 More Information
 ~~~~~~~~~~~~~~~~
