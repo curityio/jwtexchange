@@ -24,11 +24,11 @@ the plugin group; otherwise, they will not be accessible to this plug-in and run
 Configuring the Plugin
 """""""""""""""""""""
 
-`Access Token Issuer`: The issuer to use when issuing the response token
-`Signature Verification Key`: A configured signature verification key to be used when validating the received JWT (If JWKS Endpoint is not used)
-`Audience`: The allowed value in the `aud` claim of the received JWT
-`Issuer`: The allowed value in the `iss` claim of the received JWT
-`JWKS Endpoint`: The JWKS Endpoint if used for JWT validation
+- `Access Token Issuer`: The issuer to use when issuing the response token
+- `Signature Verification Key`: A configured signature verification key to be used when validating the received JWT (If JWKS Endpoint is not used)
+- `Audience`: The allowed value in the `aud` claim of the received JWT
+- `Issuer`: The allowed value in the `iss` claim of the received JWT
+- `JWKS Endpoint`: The JWKS Endpoint if used for JWT validation
 
 1. Configure the Token Exchange Flow on a new `token` endpoint (ex. `/jwt-exchange`) and set it to use the Plugin.
 2. Configure a client with the `Client Credentials` and `Token Exchange` capabilities.
