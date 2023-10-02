@@ -17,6 +17,7 @@
 package io.curity.plugins.procedure.jwtexchange
 
 import org.jose4j.jwk.HttpsJwks
+import org.jose4j.jwt.consumer.InvalidJwtException
 import org.jose4j.jwt.consumer.JwtConsumer
 import org.jose4j.jwt.consumer.JwtConsumerBuilder
 import org.jose4j.keys.resolvers.HttpsJwksVerificationKeyResolver
@@ -68,24 +69,30 @@ class JwtExchangeTokenExchangeTokenProcedure(private val _configuration: JwtExch
         //If using a configured signature verification key
         if(_configuration.getSignatureVerificationKey().isPresent) {
             jwtConsumer = JwtConsumerBuilder()
+                .setRequireExpirationTime()
                 .setVerificationKey(_configuration.getSignatureVerificationKey().get().publicKey)
                 .setExpectedAudience(_configuration.getAudience())
                 .setExpectedIssuer(_configuration.getIssuer())
                 .build()
         }
-        //if using a JWKS Endpoint, NOT TESTED
+        //If using a JWKS Endpoint, NOT TESTED
         else if (_configuration.getJwksEndpoint().isPresent)
         {
             val httpsJkws = HttpsJwks(_configuration.getJwksEndpoint().get())
             val httpsJwksKeyResolver = HttpsJwksVerificationKeyResolver(httpsJkws)
 
             jwtConsumer = JwtConsumerBuilder()
+                .setRequireExpirationTime()
                 .setVerificationKeyResolver(httpsJwksKeyResolver)
                 .setExpectedAudience(_configuration.getAudience())
                 .setExpectedIssuer(_configuration.getIssuer())
                 .build()
         }
 
-        jwtConsumer.process(jwt)
+        try {
+            jwtConsumer.process(jwt)
+        } catch (e: InvalidJwtException) {
+            _logger.debug("Invalid JWT! $e")
+        }
     }
 }
