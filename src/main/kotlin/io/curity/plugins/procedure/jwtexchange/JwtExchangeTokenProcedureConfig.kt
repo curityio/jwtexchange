@@ -17,7 +17,6 @@
 package io.curity.plugins.procedure.jwtexchange
 
 import se.curity.identityserver.sdk.config.Configuration
-import se.curity.identityserver.sdk.config.OneOf
 import se.curity.identityserver.sdk.config.annotation.DefaultService
 import se.curity.identityserver.sdk.service.ExceptionFactory
 import se.curity.identityserver.sdk.service.HttpClient
@@ -36,12 +35,8 @@ interface JwtExchangeTokenProcedureConfig : Configuration
 
     fun getIssuer(): String
 
-    fun getVerificationKeyMethod() : SignatureVerificationKeyMethod
+    fun getSignatureVerificationKey(): Optional<AsymmetricSignatureVerificationCryptoStore>
+    fun getJwksEndpoint(): Optional<String>
 
     @DefaultService fun getHttpClient() : HttpClient
-
-    interface SignatureVerificationKeyMethod : OneOf {
-        fun  getConfiguredVerificationKey(): Optional<AsymmetricSignatureVerificationCryptoStore>
-        fun getJwksEndpoint(): Optional<String>
-    }
 }

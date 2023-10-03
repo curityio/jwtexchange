@@ -16,7 +16,8 @@
  */
 package io.curity.plugins.procedure.jwtexchange
 
-import org.slf4j.LoggerFactory
+import se.curity.identityserver.sdk.attribute.Attribute
+import se.curity.identityserver.sdk.attribute.Attributes
 import se.curity.identityserver.sdk.attribute.token.AccessTokenAttributes
 import se.curity.identityserver.sdk.data.tokens.TokenIssuerException
 import se.curity.identityserver.sdk.errors.ErrorCode.INVALID_INPUT
@@ -31,7 +32,6 @@ class JwtExchangeTokenExchangeTokenProcedure(
     private val _jwtConsumer: JwtConsumerManagedObject
 ) : TokenExchangeTokenProcedure
 {
-    private val _logger = LoggerFactory.getLogger(JwtExchangeTokenExchangeTokenProcedure::class.java)
     override fun run(context: TokenExchangeTokenProcedurePluginContext): ResponseModel
     {
         val subjectToken = context.request.getFormParameterValueOrError("subject_token") { _ ->
@@ -44,7 +44,12 @@ class JwtExchangeTokenExchangeTokenProcedure(
         val subjectTokenClaims = _jwtConsumer.validateToClaims(subjectToken, _configuration.getHttpClient())
             ?: throw _configuration.getExceptionFactory()
                 .badRequestException(INVALID_INPUT, "Could not validate subject token")
-        val accessTokenData = AccessTokenAttributes.fromMap(subjectTokenClaims.claimsMap)
+        val accessTokenData = AccessTokenAttributes.of(
+            Attributes.fromMap(subjectTokenClaims.claimsMap)
+                .with(Attribute.of("purpose", "access_token"))
+                .with(Attribute.of("nbf", Instant.now().epochSecond))
+                .with(Attribute.of("iat", Instant.now().epochSecond))
+        )
 
         val accessTokenIssuer = _configuration.getAccessTokenIssuer()
         return try

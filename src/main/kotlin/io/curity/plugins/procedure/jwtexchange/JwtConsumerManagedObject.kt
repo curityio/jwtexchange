@@ -27,18 +27,18 @@ class JwtConsumerManagedObject(private val _config: JwtExchangeTokenProcedureCon
     private var _jwtConsumer: JwtConsumer? = null
 
     private fun getJwtConsumer(httpClient : HttpClient) : JwtConsumer {
-        return if (_config.getVerificationKeyMethod().getConfiguredVerificationKey().isPresent)
+        return if (_config.getSignatureVerificationKey().isPresent)
         {
             JwtConsumerBuilder()
                 .setRequireExpirationTime()
-                .setVerificationKey(_config.getVerificationKeyMethod().getConfiguredVerificationKey().get().publicKey)
+                .setVerificationKey(_config.getSignatureVerificationKey().get().publicKey)
                 .setExpectedAudience(_config.getAudience())
                 .setExpectedIssuer(_config.getIssuer())
                 .build()
-        } else if (_config.getVerificationKeyMethod().getJwksEndpoint().isPresent)
+        } else if (_config.getJwksEndpoint().isPresent)
         {
 
-            val httpsJwks = HttpsJwks(_config.getVerificationKeyMethod().getJwksEndpoint().get())
+            val httpsJwks = HttpsJwks(_config.getJwksEndpoint().get())
             httpsJwks.setSimpleHttpGet { location ->
                 val response = httpClient.request(URI(location)).get().response()
                 Response(
@@ -56,7 +56,7 @@ class JwtConsumerManagedObject(private val _config: JwtExchangeTokenProcedureCon
                 .build()
         } else
         {
-            throw _exceptionFactory.configurationException("Missing key retrieval configuration")
+            throw _exceptionFactory.configurationException("Either signature verification key or JWKS uri must be configured")
         }
     }
 
