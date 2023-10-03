@@ -31,12 +31,12 @@ interface JwtExchangeTokenProcedureConfig : Configuration
 
     fun getExceptionFactory(): ExceptionFactory
 
-    fun getAudience(): String
-
     fun getIssuer(): String
 
     fun getSignatureVerificationKey(): Optional<AsymmetricSignatureVerificationCryptoStore>
+
     fun getJwksEndpoint(): Optional<String>
 
-    @DefaultService fun getHttpClient() : HttpClient
+    @DefaultService
+    fun getHttpClient() : HttpClient
 }

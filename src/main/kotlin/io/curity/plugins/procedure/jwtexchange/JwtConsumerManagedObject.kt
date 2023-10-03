@@ -32,12 +32,10 @@ class JwtConsumerManagedObject(private val _config: JwtExchangeTokenProcedureCon
             JwtConsumerBuilder()
                 .setRequireExpirationTime()
                 .setVerificationKey(_config.getSignatureVerificationKey().get().publicKey)
-                .setExpectedAudience(_config.getAudience())
                 .setExpectedIssuer(_config.getIssuer())
                 .build()
         } else if (_config.getJwksEndpoint().isPresent)
         {
-
             val httpsJwks = HttpsJwks(_config.getJwksEndpoint().get())
             httpsJwks.setSimpleHttpGet { location ->
                 val response = httpClient.request(URI(location)).get().response()
@@ -51,7 +49,6 @@ class JwtConsumerManagedObject(private val _config: JwtExchangeTokenProcedureCon
             JwtConsumerBuilder()
                 .setRequireExpirationTime()
                 .setVerificationKeyResolver(httpsJwksKeyResolver)
-                .setExpectedAudience(_config.getAudience())
                 .setExpectedIssuer(_config.getIssuer())
                 .build()
         } else
