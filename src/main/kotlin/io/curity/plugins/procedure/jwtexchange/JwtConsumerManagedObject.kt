@@ -31,6 +31,7 @@ class JwtConsumerManagedObject(private val _config: JwtExchangeTokenProcedureCon
         {
             JwtConsumerBuilder()
                 .setRequireExpirationTime()
+                .setSkipDefaultAudienceValidation()
                 .setVerificationKey(_config.getSignatureVerificationKey().get().publicKey)
                 .setExpectedIssuer(_config.getIssuer())
                 .build()
@@ -49,6 +50,7 @@ class JwtConsumerManagedObject(private val _config: JwtExchangeTokenProcedureCon
             JwtConsumerBuilder()
                 .setRequireExpirationTime()
                 .setVerificationKeyResolver(httpsJwksKeyResolver)
+                .setSkipDefaultAudienceValidation()
                 .setExpectedIssuer(_config.getIssuer())
                 .build()
         } else
