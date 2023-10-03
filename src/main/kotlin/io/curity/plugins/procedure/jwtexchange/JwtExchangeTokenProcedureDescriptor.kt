@@ -16,7 +16,9 @@
  */
 package io.curity.plugins.procedure.jwtexchange
 
+import se.curity.identityserver.sdk.plugin.ManagedObject
 import se.curity.identityserver.sdk.plugin.descriptor.TokenProcedurePluginDescriptor
+import java.util.Optional
 
 class JwtExchangeTokenProcedureDescriptor: TokenProcedurePluginDescriptor<JwtExchangeTokenProcedureConfig>
 {
@@ -24,5 +26,10 @@ class JwtExchangeTokenProcedureDescriptor: TokenProcedurePluginDescriptor<JwtExc
 
     override fun getPluginImplementationType() = "jwtexchange"
 
-    override fun getConfigurationType() = JwtExchangeTokenProcedureConfig::class.java    
+    override fun getConfigurationType() = JwtExchangeTokenProcedureConfig::class.java
+
+    override fun createManagedObject(configuration: JwtExchangeTokenProcedureConfig): Optional<out ManagedObject<JwtExchangeTokenProcedureConfig>>
+    {
+        return Optional.of(JwtConsumerManagedObject(configuration))
+    }
 }

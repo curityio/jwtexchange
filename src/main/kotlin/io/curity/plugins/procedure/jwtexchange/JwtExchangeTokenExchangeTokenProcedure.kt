@@ -16,34 +16,37 @@
  */
 package io.curity.plugins.procedure.jwtexchange
 
-import org.jose4j.jwk.HttpsJwks
-import org.jose4j.jwt.consumer.InvalidJwtException
-import org.jose4j.jwt.consumer.JwtConsumer
-import org.jose4j.jwt.consumer.JwtConsumerBuilder
-import org.jose4j.keys.resolvers.HttpsJwksVerificationKeyResolver
 import org.slf4j.LoggerFactory
+import se.curity.identityserver.sdk.attribute.token.AccessTokenAttributes
 import se.curity.identityserver.sdk.data.tokens.TokenIssuerException
-import se.curity.identityserver.sdk.errors.ErrorCode
+import se.curity.identityserver.sdk.errors.ErrorCode.INVALID_INPUT
 import se.curity.identityserver.sdk.procedure.token.TokenExchangeTokenProcedure
 import se.curity.identityserver.sdk.procedure.token.context.TokenExchangeTokenProcedurePluginContext
 import se.curity.identityserver.sdk.web.ResponseModel
 import java.time.Instant
 
 
-class JwtExchangeTokenExchangeTokenProcedure(private val _configuration: JwtExchangeTokenProcedureConfig) : TokenExchangeTokenProcedure
+class JwtExchangeTokenExchangeTokenProcedure(
+    private val _configuration: JwtExchangeTokenProcedureConfig,
+    private val _jwtConsumer: JwtConsumerManagedObject
+) : TokenExchangeTokenProcedure
 {
     private val _logger = LoggerFactory.getLogger(JwtExchangeTokenExchangeTokenProcedure::class.java)
     override fun run(context: TokenExchangeTokenProcedurePluginContext): ResponseModel
     {
-        val subjectToken= context.request.getFormParameterValueOrError("subject_token") { _ ->
-            throw _configuration.getExceptionFactory().badRequestException(ErrorCode.INVALID_INPUT, "Multiple subject_token in request")
-        } ?: throw _configuration.getExceptionFactory().badRequestException(ErrorCode.INVALID_INPUT, "No subject_token in request")
+        val subjectToken = context.request.getFormParameterValueOrError("subject_token") { _ ->
+            throw _configuration.getExceptionFactory()
+                .badRequestException(INVALID_INPUT, "Multiple subject_token in request")
+        } ?: throw _configuration.getExceptionFactory()
+            .badRequestException(INVALID_INPUT, "No subject_token in request")
 
-        validateJWT(subjectToken)
+
+        val subjectTokenClaims = _jwtConsumer.validateToClaims(subjectToken, _configuration.getHttpClient())
+            ?: throw _configuration.getExceptionFactory()
+                .badRequestException(INVALID_INPUT, "Could not validate subject token")
+        val accessTokenData = AccessTokenAttributes.fromMap(subjectTokenClaims.claimsMap)
 
         val accessTokenIssuer = _configuration.getAccessTokenIssuer()
-        val accessTokenData = context.getDefaultAccessTokenData(context.delegation)
-
         return try
         {
             val issuedAccessToken = accessTokenIssuer.issue(accessTokenData, context.delegation)
@@ -59,40 +62,6 @@ class JwtExchangeTokenExchangeTokenProcedure(private val _configuration: JwtExch
         } catch (e: TokenIssuerException)
         {
             ResponseModel.problemResponseModel("token_issuer_exception", "Could not issue new tokens")
-        }
-    }
-
-    private fun validateJWT(jwt: String)
-    {
-        lateinit var jwtConsumer: JwtConsumer
-
-        //If using a configured signature verification key
-        if(_configuration.getSignatureVerificationKey().isPresent) {
-            jwtConsumer = JwtConsumerBuilder()
-                .setRequireExpirationTime()
-                .setVerificationKey(_configuration.getSignatureVerificationKey().get().publicKey)
-                .setExpectedAudience(_configuration.getAudience())
-                .setExpectedIssuer(_configuration.getIssuer())
-                .build()
-        }
-        //If using a JWKS Endpoint, NOT TESTED
-        else if (_configuration.getJwksEndpoint().isPresent)
-        {
-            val httpsJkws = HttpsJwks(_configuration.getJwksEndpoint().get())
-            val httpsJwksKeyResolver = HttpsJwksVerificationKeyResolver(httpsJkws)
-
-            jwtConsumer = JwtConsumerBuilder()
-                .setRequireExpirationTime()
-                .setVerificationKeyResolver(httpsJwksKeyResolver)
-                .setExpectedAudience(_configuration.getAudience())
-                .setExpectedIssuer(_configuration.getIssuer())
-                .build()
-        }
-
-        try {
-            jwtConsumer.process(jwt)
-        } catch (e: InvalidJwtException) {
-            _logger.debug("Invalid JWT! $e")
         }
     }
 }
