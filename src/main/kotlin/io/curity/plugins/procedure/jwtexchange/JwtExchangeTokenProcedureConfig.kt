@@ -27,7 +27,7 @@ import java.util.Optional
 interface JwtExchangeTokenProcedureConfig : Configuration
 {
     @DefaultService
-    fun getAccessTokenIssuer(): AccessTokenIssuer
+    fun getTokenIssuer(): AccessTokenIssuer
 
     fun getExceptionFactory(): ExceptionFactory
 

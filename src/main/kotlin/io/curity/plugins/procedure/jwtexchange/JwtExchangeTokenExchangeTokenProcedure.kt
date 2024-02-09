@@ -34,34 +34,46 @@ class JwtExchangeTokenExchangeTokenProcedure(
 {
     override fun run(context: TokenExchangeTokenProcedurePluginContext): ResponseModel
     {
-        val subjectToken = context.request.getFormParameterValueOrError("subject_token") { _ ->
+        val refreshToken = context.request.getFormParameterValueOrError("refresh_token") { _ ->
             throw _configuration.getExceptionFactory()
-                .badRequestException(INVALID_INPUT, "Multiple subject_token in request")
+                .badRequestException(INVALID_INPUT, "Multiple refresh_token in request")
         } ?: throw _configuration.getExceptionFactory()
-            .badRequestException(INVALID_INPUT, "No subject_token in request")
+            .badRequestException(INVALID_INPUT, "No refresh_token in request")
 
 
-        val subjectTokenClaims = _jwtConsumer.validateToClaims(subjectToken, _configuration.getHttpClient())
+        val subjectTokenClaims = _jwtConsumer.validateToClaims(refreshToken, _configuration.getHttpClient())
             ?: throw _configuration.getExceptionFactory()
-                .badRequestException(INVALID_INPUT, "Could not validate subject token")
-        val accessTokenData = AccessTokenAttributes.of(
+                .badRequestException(INVALID_INPUT, "Could not validate refresh token")
+        val refreshTokenData = AccessTokenAttributes.of(
             Attributes.fromMap(subjectTokenClaims.claimsMap)
-                .with(Attribute.of("purpose", "access_token"))
+                .with(Attribute.of("purpose", "refresh_token"))
                 .with(Attribute.of("nbf", Instant.now().epochSecond))
                 .with(Attribute.of("iat", Instant.now().epochSecond))
         )
 
-        val accessTokenIssuer = _configuration.getAccessTokenIssuer()
+        val accessTokenData = AccessTokenAttributes.of(
+                Attributes.fromMap(subjectTokenClaims.claimsMap)
+                        .with(Attribute.of("purpose", "access_token"))
+                        .with(Attribute.of("nbf", Instant.now().epochSecond))
+                        .with(Attribute.of("iat", Instant.now().epochSecond))
+                        .with(Attribute.of("foo", "bar"))
+        )
+
+        val refreshTokenIssuer = _configuration.getTokenIssuer()
+
         return try
         {
-            val issuedAccessToken = accessTokenIssuer.issue(accessTokenData, context.delegation)
+            val issuedJWTRefreshToken = refreshTokenIssuer.issue(refreshTokenData, context.delegation)
+
+            val issuedAccessToken = context.accessTokenIssuer.issue(accessTokenData, context.delegation)
 
             ResponseModel.mapResponseModel(
                 mapOf(
-                    "scope" to accessTokenData.scope,
+                    "scope" to refreshTokenData.scope,
                     "access_token" to issuedAccessToken,
+                    "refresh_token" to issuedJWTRefreshToken,
                     "token_type" to "bearer",
-                    "expires_in" to accessTokenData.expires.epochSecond - Instant.now().epochSecond
+                    "expires_in" to refreshTokenData.expires.epochSecond - Instant.now().epochSecond
                 )
             )
         } catch (e: TokenIssuerException)
